@@ -1,11 +1,11 @@
-﻿using BackEnd.Models;
-using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using BackEnd.Models;
 
 namespace BackEnd.Controllers
 {
@@ -20,36 +20,90 @@ namespace BackEnd.Controllers
             _context = context;
         }
 
-        // GET: api/<SpeakersController>
+        // GET: api/Speakers
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<ActionResult<IEnumerable<Speaker>>> GetSpeakers()
         {
-            return new string[] { "value1", "value2" };
+            return await _context.Speakers.ToListAsync();
         }
 
-        // GET api/<SpeakersController>/5
+        // GET: api/Speakers/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task<ActionResult<Speaker>> GetSpeaker(int id)
         {
-            return "value";
+            var speaker = await _context.Speakers.FindAsync(id);
+
+            if (speaker == null)
+            {
+                return NotFound();
+            }
+
+            return speaker;
         }
 
-        // POST api/<SpeakersController>
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT api/<SpeakersController>/5
+        // PUT: api/Speakers/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for
+        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<IActionResult> PutSpeaker(int id, Speaker speaker)
         {
+            if (id != speaker.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(speaker).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!SpeakerExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
         }
 
-        // DELETE api/<SpeakersController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        // POST: api/Speakers
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for
+        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+        [HttpPost]
+        public async Task<ActionResult<Speaker>> PostSpeaker(Speaker speaker)
         {
+            _context.Speakers.Add(speaker);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetSpeaker", new { id = speaker.Id }, speaker);
+        }
+
+        // DELETE: api/Speakers/5
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<Speaker>> DeleteSpeaker(int id)
+        {
+            var speaker = await _context.Speakers.FindAsync(id);
+            if (speaker == null)
+            {
+                return NotFound();
+            }
+
+            _context.Speakers.Remove(speaker);
+            await _context.SaveChangesAsync();
+
+            return speaker;
+        }
+
+        private bool SpeakerExists(int id)
+        {
+            return _context.Speakers.Any(e => e.Id == id);
         }
     }
 }
