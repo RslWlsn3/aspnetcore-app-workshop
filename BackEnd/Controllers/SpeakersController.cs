@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BackEnd.Models;
+using BackEnd.Data;
 
 namespace BackEnd.Controllers
 {
@@ -24,7 +24,12 @@ namespace BackEnd.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Speaker>>> GetSpeakers()
         {
-            return await _context.Speakers.ToListAsync();
+            var speakers = await _context.Speakers.AsNoTracking()
+                        .Include(s => s.SessionSpeakers)
+                            .ThenInclude(ss => ss.Session)
+                        .ToListAsync();
+            return speakers;
+
         }
 
         // GET: api/Speakers/5

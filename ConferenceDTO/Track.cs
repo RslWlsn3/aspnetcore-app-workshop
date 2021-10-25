@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ConferenceDTO
 {
-    class Track
+    public class Track
     {
         public int Id { get; set; }
 
